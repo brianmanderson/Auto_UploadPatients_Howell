@@ -9,7 +9,7 @@ run_local = False
 if run_local:
     from Run_Locally import Split_Plan_RT
     data_path = r'L:\Research\Howell'  # some path to plan folders
-    out_path = r'D:\howell_patient\inputs'  # Some path to where we can locally write them and upload to RS
+    out_path = r'Y:\Exports'  # Some path to where we can locally write them and upload to RS
     split = Split_Plan_RT(out_path=out_path)
     split.down_folder(data_path)
     for path in split.dicom_folders:

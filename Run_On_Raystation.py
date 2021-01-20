@@ -117,7 +117,7 @@ class import_dicom_class:
 
 
 def main():
-    data_path = r'D:\howell_patient\Inputs'  # Same path as in the Main function
+    data_path = r'Y:\Exports'  # Same path as in the Main function
     print('running')
     import_class = import_dicom_class()
     for MRN in os.listdir(data_path):
