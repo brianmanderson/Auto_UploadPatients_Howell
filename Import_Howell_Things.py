@@ -62,6 +62,8 @@ class import_dicom_class:
                 self.patient_id = MRN
                 self.patient = get_current("Patient")
                 self.case = get_current("Case")
+                self.case.CaseName = plan
+                self.patient.Save()
             print('info found')
             if self.patient_id != MRN:
                 print('patient id does not match MRN')
