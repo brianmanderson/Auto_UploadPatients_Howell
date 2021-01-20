@@ -97,13 +97,7 @@ class Split_Plan_RT(object):
                     shutil.copy2(file,os.path.join(out_path,os.path.split(file)[-1]))
             xxx = 1
 
-data_path = r'L:\Research\Howell'
-out_path = r'D:\howell_patient\inputs'
-split = Split_Plan_RT(out_path=out_path)
-split.down_folder(data_path)
-for path in split.dicom_folders:
-    split.identify_MRNs(path)
-for MRN in split.patient_folders.keys():
-    print('Coping over {}'.format(MRN))
-    split.combine_plan_RTs(MRN)
-xxx = 1
+
+if __name__ == '__main__':
+    pass
+

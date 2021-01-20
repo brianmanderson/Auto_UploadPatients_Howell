@@ -115,13 +115,16 @@ class import_dicom_class:
             fid.close()
         return None
 
+
 def main():
-    path = r'Y:\Exports'
+    data_path = r'D:\howell_patient\Inputs'  # Same path as in the Main function
     print('running')
     import_class = import_dicom_class()
-    for MRN in os.listdir(path):
+    for MRN in os.listdir(data_path):
+        print('Loading {}'.format(MRN))
         try:
-            import_class.import_dicoms_new(MRN, path)
+            import_class.import_dicoms_new(MRN, data_path)
+            break
         except:
             import_class.patient_id = '0'
             continue
