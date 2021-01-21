@@ -66,6 +66,8 @@ class import_dicom_class:
                                                                     SearchCriterias=study)
             if not info:
                 for seri in series:
+                    if seri['Modality'] not in ['CT', 'MR']:
+                        continue
                     try:
                         self.patient_db.ImportPatientFromRepository(Connection={'Node': self.ip, 'Port': self.port,
                                                                                 'CalledAE': self.AE_Title,
@@ -101,10 +103,16 @@ class import_dicom_class:
                     case_names = [case.CaseName for case in self.patient.Cases]
                     try:
                         if plan in case_names:
-                            self.patient.ImportDataFromRepositoryByAETitle(AETitle='EVERCORE_SCP', SeriesOrInstances=[series], CaseName=plan)
+                            self.patient.ImportDataFromRepository(Connection={'Node': self.ip, 'Port': self.port,
+                                                                              'CalledAE': self.AE_Title,
+                                                                              'CallingAE': self.CallingAE},
+                                                                  SeriesOrInstances=[series], CaseName=plan)
                             self.patient.Save()
                         else:
-                            self.patient.ImportDataFromRepositoryByAETitle(AETitle='EVERCORE_SCP', SeriesOrInstances=[series], CaseName=None)
+                            self.patient.ImportDataFromRepository(Connection={'Node': self.ip, 'Port': self.port,
+                                                                              'CalledAE': self.AE_Title,
+                                                                              'CallingAE': self.CallingAE},
+                                                                  SeriesOrInstances=[series], CaseName=None)
                             self.patient.Save()
                             for case in self.patient.Cases:
                                 if case.CaseName not in case_names: # This is the new one!
