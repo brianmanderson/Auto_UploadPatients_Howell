@@ -16,12 +16,12 @@ class import_dicom_class:
         except:
             self.patient_id = '0'
         self.patient_db = get_current("PatientDB")
-        self.ip = '192.168.5.55'
-        self.port = 107
-        self.AE_Title = 'Stentor_QRP'
-        self.CallingAE = 'RAYSTATION_SSCP'
 
     def import_dicoms_new(self, MRN, path):
+        ip = '192.168.5.55'
+        port = 107
+        AE_Title = 'Stentor_QRP'
+        CallingAE = 'RAYSTATION_SSCP'
         patient_path = os.path.join(path,MRN)
         for plan in os.listdir(patient_path):
             plan_path = os.path.join(patient_path,plan)
@@ -44,9 +44,9 @@ class import_dicom_class:
                 if info_temp['PatientID'] == MRN:
                     info = info_temp
                     break
-            pi_all = self.patient_db.QueryPatientsFromRepository(Connection={'Node': self.ip, 'Port': self.port,
-                                                                             'CalledAE': self.AE_Title,
-                                                                             'CallingAE': self.CallingAE},
+            pi_all = self.patient_db.QueryPatientsFromRepository(Connection={'Node': ip, 'Port': port,
+                                                                             'CalledAE': AE_Title,
+                                                                             'CallingAE': CallingAE},
                                                                  SearchCriterias={'PatientID': MRN})
             pi = {}
             for pi_temp in pi_all:
@@ -54,24 +54,28 @@ class import_dicom_class:
                     pi = pi_temp
                     break
             pi['StudyInstanceUID'] = study_instance_uid
-            studies = self.patient_db.QueryStudiesFromRepository(Connection={'Node': self.ip, 'Port': self.port,
-                                                                             'CalledAE': self.AE_Title,
-                                                                             'CallingAE': self.CallingAE},
+            studies = self.patient_db.QueryStudiesFromRepository(Connection={'Node': ip, 'Port': port,
+                                                                             'CalledAE': AE_Title,
+                                                                             'CallingAE': CallingAE},
                                                                  SearchCriterias=pi)
             series = []
+            i = 1
             for study in studies:
-                series += self.patient_db.QuerySeriesFromRepository(Connection={'Node': self.ip, 'Port': self.port,
-                                                                                'CalledAE': self.AE_Title,
-                                                                                'CallingAE': self.CallingAE},
+                i += 1
+                series += self.patient_db.QuerySeriesFromRepository(Connection={'Node': ip, 'Port': port,
+                                                                                'CalledAE': AE_Title,
+                                                                                'CallingAE': CallingAE},
                                                                     SearchCriterias=study)
+                if i > 5:
+                    break
             if not info:
                 for seri in series:
                     if seri['Modality'] not in ['CT', 'MR']:
                         continue
                     try:
-                        self.patient_db.ImportPatientFromRepository(Connection={'Node': self.ip, 'Port': self.port,
-                                                                                'CalledAE': self.AE_Title,
-                                                                                'CallingAE': self.CallingAE},
+                        self.patient_db.ImportPatientFromRepository(Connection={'Node': ip, 'Port': port,
+                                                                                'CalledAE': AE_Title,
+                                                                                'CallingAE': CallingAE},
                                                                     SeriesOrInstances=[seri])
                         break
                     except:
@@ -103,15 +107,15 @@ class import_dicom_class:
                     case_names = [case.CaseName for case in self.patient.Cases]
                     try:
                         if plan in case_names:
-                            self.patient.ImportDataFromRepository(Connection={'Node': self.ip, 'Port': self.port,
-                                                                              'CalledAE': self.AE_Title,
-                                                                              'CallingAE': self.CallingAE},
+                            self.patient.ImportDataFromRepository(Connection={'Node': ip, 'Port': port,
+                                                                              'CalledAE': AE_Title,
+                                                                              'CallingAE': CallingAE},
                                                                   SeriesOrInstances=[series], CaseName=plan)
                             self.patient.Save()
                         else:
-                            self.patient.ImportDataFromRepository(Connection={'Node': self.ip, 'Port': self.port,
-                                                                              'CalledAE': self.AE_Title,
-                                                                              'CallingAE': self.CallingAE},
+                            self.patient.ImportDataFromRepository(Connection={'Node': ip, 'Port': port,
+                                                                              'CalledAE': AE_Title,
+                                                                              'CallingAE': CallingAE},
                                                                   SeriesOrInstances=[series], CaseName=None)
                             self.patient.Save()
                             for case in self.patient.Cases:
