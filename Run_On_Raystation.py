@@ -55,15 +55,11 @@ class import_dicom_class:
             studies = self.patient_db.QueryStudiesFromRepository(Connection={'Node': ip, 'Port': port, 'CalledAE': AE_Title, 'CallingAE': CallingAE},
                                                                  SearchCriterias=pi)
             series = []
-            i = 1
             for study in studies:
-                i += 1
                 series += self.patient_db.QuerySeriesFromRepository(Connection={'Node': ip, 'Port': port,
                                                                                 'CalledAE': AE_Title,
                                                                                 'CallingAE': CallingAE},
                                                                     SearchCriterias=study)
-                if i > 5:
-                    break
             if not info:
                 for seri in series:
                     if seri['Modality'] not in ['CT', 'MR']:
