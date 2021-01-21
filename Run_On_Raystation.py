@@ -60,16 +60,13 @@ class import_dicom_class:
                                                                                 'CalledAE': AE_Title,
                                                                                 'CallingAE': CallingAE},
                                                                     SearchCriterias=study)
+            series = [i for i in series if i['Modality'] in ['CT', 'MR']]
             if not info:
-                for seri in series:
-                    if seri['Modality'] not in ['CT', 'MR']:
-                        continue
-                    try:
-                        self.patient_db.ImportPatientFromRepository(Connection={'Node': ip, 'Port': port, 'CalledAE': AE_Title, 'CallingAE': CallingAE},
-                                                                    SeriesOrInstances=[seri])
-                        break
-                    except:
-                        continue
+                try:
+                    self.patient_db.ImportPatientFromRepository(Connection={'Node': ip, 'Port': port, 'CalledAE': AE_Title, 'CallingAE': CallingAE},
+                                                                SeriesOrInstances=series)
+                except:
+                    continue
                 self.patient_db = get_current("PatientDB")  # Got a new patient, update the patient db
                 self.patient_id = MRN
                 self.patient = get_current("Patient")
@@ -91,27 +88,24 @@ class import_dicom_class:
                 imported_uids = [e.Series[0].ImportedDicomUID for e in self.case.Examinations]
             import_series = [i for i in series if i['SeriesInstanceUID'] not in imported_uids]
             if import_series:
-                for series in import_series:
-                    if series['Modality'] != 'CT' and series['Modality'] != 'MR':
-                        continue
-                    case_names = [case.CaseName for case in self.patient.Cases]
-                    try:
-                        if plan in case_names:
-                            self.patient.ImportDataFromRepository(Connection={'Node': ip, 'Port': port, 'CalledAE': AE_Title, 'CallingAE': CallingAE},
-                                                                  SeriesOrInstances=[series], CaseName=plan)
-                            self.patient.Save()
-                        else:
-                            self.patient.ImportDataFromRepository(Connection={'Node': ip, 'Port': port,  'CalledAE': AE_Title, 'CallingAE': CallingAE},
-                                                                  SeriesOrInstances=[series], CaseName=None)
-                            self.patient.Save()
-                            for case in self.patient.Cases:
-                                if case.CaseName not in case_names: # This is the new one!
-                                    case.CaseName = plan
-                                    self.patient.Save()
-                                    break
-                    except:
-                        print('failed importing')
-                        print(series)
+                case_names = [case.CaseName for case in self.patient.Cases]
+                try:
+                    if plan in case_names:
+                        self.patient.ImportDataFromRepository(Connection={'Node': ip, 'Port': port, 'CalledAE': AE_Title, 'CallingAE': CallingAE},
+                                                              SeriesOrInstances=import_series, CaseName=plan)
+                        self.patient.Save()
+                    else:
+                        self.patient.ImportDataFromRepository(Connection={'Node': ip, 'Port': port,  'CalledAE': AE_Title, 'CallingAE': CallingAE},
+                                                              SeriesOrInstances=import_series, CaseName=None)
+                        self.patient.Save()
+                        for case in self.patient.Cases:
+                            if case.CaseName not in case_names: # This is the new one!
+                                case.CaseName = plan
+                                self.patient.Save()
+                                break
+                except:
+                    print('failed importing')
+                    print(series)
             pi_all = self.patient_db.QueryPatientsFromPath(Path=plan_path, SearchCriterias={'PatientID': MRN})
             pi = {}
             for pi_temp in pi_all:
@@ -138,7 +132,6 @@ def main():
         print('Loading {}'.format(MRN))
         try:
             import_class.import_dicoms_new(MRN, data_path)
-            break
         except:
             import_class.patient_id = '0'
             continue
