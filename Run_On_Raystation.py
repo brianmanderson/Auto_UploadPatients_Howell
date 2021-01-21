@@ -16,6 +16,10 @@ class import_dicom_class:
         except:
             self.patient_id = '0'
         self.patient_db = get_current("PatientDB")
+        self.ip = '192.168.5.55'
+        self.port = 107
+        self.AE_Title = 'Stentor_QRP'
+        self.CallingAE = 'RAYSTATION_SSCP'
 
     def import_dicoms_new(self, MRN, path):
         patient_path = os.path.join(path,MRN)
@@ -40,21 +44,33 @@ class import_dicom_class:
                 if info_temp['PatientID'] == MRN:
                     info = info_temp
                     break
-            pi_all = self.patient_db.QueryPatientsFromRepositoryByAETitle(AETitle='EVERCORE_SCP', SearchCriterias={'PatientID': MRN})
+            pi_all = self.patient_db.QueryPatientsFromRepository(Connection={'Node': self.ip, 'Port': self.port,
+                                                                             'CalledAE': self.AE_Title,
+                                                                             'CallingAE': self.CallingAE},
+                                                                 SearchCriterias={'PatientID': MRN})
             pi = {}
             for pi_temp in pi_all:
                 if pi_temp['PatientID'] == MRN:
                     pi = pi_temp
                     break
             pi['StudyInstanceUID'] = study_instance_uid
-            studies = self.patient_db.QueryStudiesFromRepositoryByAETitle(AETitle='EVERCORE_SCP', SearchCriterias=pi)
+            studies = self.patient_db.QueryStudiesFromRepository(Connection={'Node': self.ip, 'Port': self.port,
+                                                                             'CalledAE': self.AE_Title,
+                                                                             'CallingAE': self.CallingAE},
+                                                                 SearchCriterias=pi)
             series = []
             for study in studies:
-                series += self.patient_db.QuerySeriesFromRepositoryByAETitle(AETitle='EVERCORE_SCP',SearchCriterias=study)
+                series += self.patient_db.QuerySeriesFromRepository(Connection={'Node': self.ip, 'Port': self.port,
+                                                                                'CalledAE': self.AE_Title,
+                                                                                'CallingAE': self.CallingAE},
+                                                                    SearchCriterias=study)
             if not info:
                 for seri in series:
                     try:
-                        self.patient_db.ImportPatientFromRepositoryByAETitle(AETitle='EVERCORE_SCP', SeriesOrInstances=[seri])
+                        self.patient_db.ImportPatientFromRepository(Connection={'Node': self.ip, 'Port': self.port,
+                                                                                'CalledAE': self.AE_Title,
+                                                                                'CallingAE': self.CallingAE},
+                                                                    SeriesOrInstances=[seri])
                         break
                     except:
                         continue
